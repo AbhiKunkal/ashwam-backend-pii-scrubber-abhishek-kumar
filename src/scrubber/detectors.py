@@ -7,21 +7,29 @@ from .models import Span
 EMAIL_REGEX = re.compile(
     r"""
     \b
-    [a-zA-Z0-9._%+-]+      # local part
+    [a-zA-Z0-9._%+-]+
     @
-    [a-zA-Z0-9.-]+        # domain
+    [a-zA-Z0-9.-]+
     \.
-    [a-zA-Z]{2,}          # TLD
+    [a-zA-Z]{2,}
     \b
     """,
     re.VERBOSE
 )
 
 
+PHONE_REGEX = re.compile(
+    r"""
+    (?<!\w)
+    (\+?\d[\d\s\-()]{7,}\d)
+    (?!\w)
+    """,
+    re.VERBOSE
+)
+
+
 def detect_emails(text: str) -> List[Span]:
-    """
-    Detect email addresses in text.
-    """
+    """Detect email addresses in text."""
     spans: List[Span] = []
 
     for match in EMAIL_REGEX.finditer(text):
@@ -36,59 +44,23 @@ def detect_emails(text: str) -> List[Span]:
         )
 
     return spans
-PHONE_REGEX = re.compile(
-    r"""
-    (?<!\w)
-    (\+?\d{1,3}[\s-]?)?
-    (\(?\d{2,4}\)?[\s-]?)?
-    \d{3,4}[\s-]?\d{4}
-    (?!\w)
-    """,
-    re.VERBOSE
-)
-
-
-PHONE_REGEX = re.compile(
-    r"""
-    (?<!\w)
-    (?:\+?\d{1,3}[\s\-]?)?      # optional country code
-    (?:\(?\d{2,4}\)?[\s\-]?)?   # optional area code
-    \d{3,5}[\s\-]?\d{4}         # local number
-    (?!\w)
-    """,
-    re.VERBOSE
-)
-
-PHONE_REGEX = re.compile(
-    r"""
-    (?<!\w)
-    (\+?\d[\d\s\-()]{7,}\d)
-    (?!\w)
-    """,
-    re.VERBOSE
-)
 
 
 def detect_phone_numbers(text: str) -> List[Span]:
-    """
-    Detect phone numbers while avoiding false positives
-    such as dates, weights, or step counts.
-    """
+    """Detect phone numbers while avoiding false positives."""
     spans: List[Span] = []
 
     for match in PHONE_REGEX.finditer(text):
         candidate = match.group()
-
-        # Keep digits only
         digits = re.sub(r"\D", "", candidate)
 
-        # Guardrails
+        # Reject too-short or unrealistic numbers
         if len(digits) < 10 or len(digits) > 15:
             continue
 
-        # Avoid measurements / dates
-        window = text[match.end():match.end() + 6].lower()
-        if any(x in window for x in ["kg", "kgs", "bpm", "steps", "/"]):
+        # Avoid health metrics
+        trailing = text[match.end():match.end() + 6].lower()
+        if any(x in trailing for x in ("kg", "kgs", "bpm", "steps", "/")):
             continue
 
         spans.append(
@@ -102,5 +74,3 @@ def detect_phone_numbers(text: str) -> List[Span]:
         )
 
     return spans
-
-
