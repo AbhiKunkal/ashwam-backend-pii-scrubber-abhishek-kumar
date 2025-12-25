@@ -197,3 +197,34 @@ def detect_provider(text: str) -> List[Span]:
         )
 
     return spans
+ADDRESS_REGEX = re.compile(
+    r"""
+    \b
+    \d{1,4}                       # street number
+    \s+
+    (?:[A-Z][a-z]+(?:\s+|$)){1,4} # street name words
+    (?:Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Boulevard|Blvd|Drive|Dr)
+    \b
+    """,
+    re.VERBOSE,
+)
+
+
+def detect_address(text: str) -> List[Span]:
+    """
+    Detect street-style addresses.
+    """
+    spans: List[Span] = []
+
+    for match in ADDRESS_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="ADDRESS",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.85,
+                priority=70,
+            )
+        )
+
+    return spans
