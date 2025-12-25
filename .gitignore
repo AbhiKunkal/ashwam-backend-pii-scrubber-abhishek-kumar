@@ -1,4 +1,15 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+.env
+
+# Test output
+.pytest_cache/
+
+# Data files
 *.jsonl
-sample_data/
