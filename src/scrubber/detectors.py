@@ -106,3 +106,34 @@ def detect_dob(text: str) -> List[Span]:
         )
 
     return spans
+
+APPOINTMENT_ID_REGEX = re.compile(
+    r"""
+    \b
+    (?:APPT|APT|BKG|BOOK|REF|REFERRAL|INV)
+    [\-_]?
+    [A-Z0-9]{4,}
+    \b
+    """,
+    re.VERBOSE | re.IGNORECASE,
+)
+
+
+def detect_appointment_ids(text: str) -> List[Span]:
+    """
+    Detect appointment / booking / referral identifiers.
+    """
+    spans: List[Span] = []
+
+    for match in APPOINTMENT_ID_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="APPOINTMENT_ID",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.9,
+                priority=88,
+            )
+        )
+
+    return spans
