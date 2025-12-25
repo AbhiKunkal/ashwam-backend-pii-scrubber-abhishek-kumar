@@ -1,41 +1,47 @@
 from typing import List
 from .models import Span, EntryOutput
-from .detectors import detect_emails, detect_phone_numbers, detect_dob
+from .detectors import (
+    detect_emails,
+    detect_phone_numbers,
+    detect_dob,
+    detect_appointment_ids,
+    detect_insurance_ids,
+    detect_government_id,
+    detect_provider,
+    detect_address,
+    detect_names,
+)
 from .resolver import resolve_overlaps
+from .replacer import replace_spans
 
 
 def scrub_text(text: str, entry_id: str = "unknown") -> EntryOutput:
     """
-    Run all detectors, resolve overlaps, and return redacted output.
+    Run all detectors, resolve overlaps, and return scrubbed text + metadata.
     """
 
     spans: List[Span] = []
 
-    # Run detectors
+    # Collect all detections
     spans.extend(detect_emails(text))
     spans.extend(detect_phone_numbers(text))
     spans.extend(detect_dob(text))
+    spans.extend(detect_appointment_ids(text))
+    spans.extend(detect_insurance_ids(text))
+    spans.extend(detect_government_id(text))
+    spans.extend(detect_provider(text))
+    spans.extend(detect_address(text))
+    spans.extend(detect_names(text))
 
-    # Resolve overlaps
+    # Resolve conflicts
     resolved = resolve_overlaps(spans)
 
-    # Sort spans left to right
-    resolved.sort(key=lambda s: s.start)
-
-    # Build redacted text
-    redacted = []
-    last_idx = 0
-
-    for span in resolved:
-        redacted.append(text[last_idx:span.start])
-        redacted.append(f"[{span.type}]")
-        last_idx = span.end
-
-    redacted.append(text[last_idx:])
+    # Replace text
+    scrubbed_text = replace_spans(text, resolved)
 
     return EntryOutput(
         entry_id=entry_id,
-        scrubbed_text="".join(redacted),
+        scrubbed_text=scrubbed_text,
         detected_spans=resolved,
-        types_found=list({s.type for s in resolved}),
+        types_found=sorted({s.type for s in resolved}),
     )
