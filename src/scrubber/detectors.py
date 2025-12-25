@@ -74,3 +74,35 @@ def detect_phone_numbers(text: str) -> List[Span]:
         )
 
     return spans
+
+DOB_REGEX = re.compile(
+    r"""
+    (?<!\d)
+    (?:
+        (?:0[1-9]|[12][0-9]|3[01])[-/](?:0[1-9]|1[0-2])[-/](?:19\d{2}|20[0-2]\d) |
+        (?:19\d{2}|20[0-2]\d)[-/](?:0[1-9]|1[0-2])[-/](?:0[1-9]|[12][0-9]|3[01])
+    )
+    (?!\d)
+    """,
+    re.VERBOSE,
+)
+
+
+def detect_dob(text: str) -> List[Span]:
+    """
+    Detect dates of birth in common formats.
+    """
+    spans: List[Span] = []
+
+    for match in DOB_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="DOB",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.85,
+                priority=90,
+            )
+        )
+
+    return spans
