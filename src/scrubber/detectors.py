@@ -258,3 +258,36 @@ def detect_names(text: str) -> List[Span]:
         )
 
     return spans
+
+GOV_ID_REGEX = re.compile(
+    r"""
+    (
+        \b\d{3}-\d{2}-\d{4}\b               # US SSN style
+        |
+        \b\d{4}\s\d{4}\s\d{4}\b             # Aadhaar style
+        |
+        \b(?:GOV|ID|SSN|AADHAAR)[\s:-]?\d{4,}\b
+    )
+    """,
+    re.VERBOSE | re.IGNORECASE,
+)
+
+
+def detect_government_id(text: str) -> List[Span]:
+    """
+    Detect government-issued identifiers (SSN, Aadhaar, etc.)
+    """
+    spans: List[Span] = []
+
+    for match in GOV_ID_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="GOVERNMENT_ID",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.95,
+                priority=95,
+            )
+        )
+
+    return spans
