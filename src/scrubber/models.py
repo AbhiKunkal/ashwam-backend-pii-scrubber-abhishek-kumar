@@ -25,3 +25,4 @@ class EntryOutput:
     detected_spans: List[Span]
     types_found: List[str]
     scrubber_version: str = "v1"
+
