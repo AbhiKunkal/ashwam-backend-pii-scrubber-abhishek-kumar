@@ -228,3 +228,33 @@ def detect_address(text: str) -> List[Span]:
         )
 
     return spans
+
+NAME_REGEX = re.compile(
+    r"""
+    (?:
+        (?:Dr\.?|Mr\.?|Ms\.?|Mrs\.?|Patient|Partner)\s+
+        (?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})
+    )
+    """,
+    re.VERBOSE,
+)
+
+
+def detect_names(text: str) -> List[Span]:
+    """
+    Detect personal names with honorifics or roles.
+    """
+    spans: List[Span] = []
+
+    for match in NAME_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="NAME",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.7,
+                priority=60,
+            )
+        )
+
+    return spans
