@@ -137,3 +137,33 @@ def detect_appointment_ids(text: str) -> List[Span]:
         )
 
     return spans
+INSURANCE_ID_REGEX = re.compile(
+    r"""
+    \b
+    (?:INS|INSURANCE|POLICY|POL|BUPA)
+    [-_ ]?
+    [A-Z0-9]{4,}
+    \b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+def detect_insurance_ids(text: str) -> List[Span]:
+    """
+    Detect insurance or policy identifiers.
+    """
+    spans: List[Span] = []
+
+    for match in INSURANCE_ID_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="INSURANCE_ID",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.9,
+                priority=87,
+            )
+        )
+
+    return spans
