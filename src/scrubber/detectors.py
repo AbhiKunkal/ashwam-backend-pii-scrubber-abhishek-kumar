@@ -167,3 +167,33 @@ def detect_insurance_ids(text: str) -> List[Span]:
         )
 
     return spans
+PROVIDER_REGEX = re.compile(
+    r"""
+    (?:
+        (?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})   # Capitalized name parts
+        \s+
+        (?:Clinic|Hospital|Centre|Center|Lab|Laboratory|Health|Healthcare|Medical)
+    )
+    """,
+    re.VERBOSE,
+)
+
+
+def detect_provider(text: str) -> List[Span]:
+    """
+    Detect healthcare provider or clinic names.
+    """
+    spans: List[Span] = []
+
+    for match in PROVIDER_REGEX.finditer(text):
+        spans.append(
+            Span(
+                type="PROVIDER",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.8,
+                priority=70,
+            )
+        )
+
+    return spans
